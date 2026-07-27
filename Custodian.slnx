@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Custodian.Api/Custodian.Api.csproj" Id="c5230bbb-31da-49ae-b321-7b1a64076f3b" />
+  <Project Path="Custodian.Application/Custodian.Application.csproj" />
+  <Project Path="Custodian.Domain/Custodian.Domain.csproj" />
+  <Project Path="Custodian.Infrastructure/Custodian.Infrastructure.csproj" />
+</Solution>
