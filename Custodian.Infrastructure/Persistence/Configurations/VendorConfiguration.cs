@@ -23,13 +23,5 @@ public class VendorConfiguration : IEntityTypeConfiguration<Vendor>
 
         builder.Property(v => v.Phone)
             .HasMaxLength(50);
-
-        builder.Property(v => v.PaymentTermDays)
-            .IsRequired();
-
-        builder.HasMany(v => v.Invoices)
-            .WithOne(i => i.Vendor)
-            .HasForeignKey(i => i.VendorId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

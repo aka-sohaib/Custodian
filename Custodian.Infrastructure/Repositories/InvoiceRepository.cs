@@ -14,49 +14,29 @@ namespace Custodian.Infrastructure.Repositories
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
-        public async Task<Invoice> GetByIdAsync(Guid Id)
+        public async Task<Invoice?> GetByIdAsync(Guid Id)
         {
-            var Invoice = await _context.Invoices.FindAsync(Id);
-            if(Invoice == null) { throw new NotFound(nameof(Invoice), Id); }
-            return Invoice;
+            return await _context.Invoices.FindAsync(Id);
         }
         public async Task<IEnumerable<Invoice>> GetAllAsync()
         {
-            var invoices = await _context.Invoices.ToListAsync();
-            if (!invoices.Any()) { return Enumerable.Empty<Invoice>(); }
-            return invoices;
+            return await _context.Invoices.ToListAsync();
         }
-        public async Task<IEnumerable<Invoice>> GetByVendorAsync(Guid vendorId)
+        public async Task<IEnumerable<Invoice>> GetByCompanyVendorIdAsync(Guid companyVendorId)
         {
-            var invoices = await _context.Invoices
-                                                  .Where(i => i.VendorId == vendorId)
-                                                  .ToListAsync();
-            if (!invoices.Any()) { return Enumerable.Empty<Invoice>(); }
-            return invoices;
+            return await _context.Invoices.Where(i => i.CompanyVendorId == companyVendorId).ToListAsync();
         }
         public async Task<IEnumerable<Invoice>> GetBySubmitterAsync(Guid userId)
         {
-            var invoices = await _context.Invoices
-                                                  .Where(i => i.SubmittedById == userId)
-                                                  .ToListAsync();
-            if (!invoices.Any()) { return Enumerable.Empty<Invoice>(); }
-            return invoices;
+            return await _context.Invoices.Where(i => i.SubmittedById == userId).ToListAsync();
         }
         public async Task<IEnumerable<Invoice>> GetByStatusAsync(Status status)
         {
-            var invoices = await _context.Invoices
-                                                  .Where(i => i.CurrentStatus == status)
-                                                  .ToListAsync();
-            if (!invoices.Any()) { return Enumerable.Empty<Invoice>(); }
-            return invoices;
+            return await _context.Invoices.Where(i => i.CurrentStatus == status).ToListAsync();
         }
         public async Task<IEnumerable<Invoice>> GetByDateRangeAsync(DateTime from, DateTime to)
         {
-            var invoices = await _context.Invoices
-                                                  .Where(i => (i.DueDate > from && i.DueDate < to))
-                                                  .ToListAsync();
-            if (!invoices.Any()) { return Enumerable.Empty<Invoice>(); }
-            return invoices;
+            return await _context.Invoices.Where(i => (i.DueDate > from && i.DueDate < to)).ToListAsync();
         }
         public async Task AddAsync(Invoice invoice)
         {

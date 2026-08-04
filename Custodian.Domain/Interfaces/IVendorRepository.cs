@@ -4,7 +4,7 @@ namespace Custodian.Domain.Interfaces
 {
     public interface IVendorRepository
     {
-        Task<Vendor> GetByIdAsync(Guid id);
+        Task<Vendor?> GetByIdAsync(Guid id);
         Task<IEnumerable<Vendor>> GetAllAsync();
         Task AddAsync(Vendor vendor);
         Task UpdateAsync(Vendor vendor);

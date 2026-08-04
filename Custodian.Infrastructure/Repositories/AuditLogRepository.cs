@@ -14,20 +14,11 @@ public class AuditLogRepository: IAuditLogRepository
     }
     public async Task<IEnumerable<AuditLog>> GetByTargetAsync(AuditTargetType targetType, Guid targetId)
     {
-        var AuditLogs = await _context.AuditLogs
-                                                .Where(a => (a.TargetType == targetType && a.TargetId == targetId))
-                                                .ToListAsync();
-        if (!AuditLogs.Any()) { return Enumerable.Empty<AuditLog>(); }
-        return AuditLogs;
-
+        return await _context.AuditLogs.Where(a => (a.TargetType == targetType && a.TargetId == targetId)).ToListAsync();
     }
     public async Task<IEnumerable<AuditLog>> GetByUserAsync(Guid userId)
     {
-        var AuditLogs = await _context.AuditLogs
-                                                .Where(a => a.PerformedById == userId)
-                                                .ToListAsync();
-        if (!AuditLogs.Any()) { return Enumerable.Empty<AuditLog>(); }
-        return AuditLogs;
+        return await _context.AuditLogs.Where(a => a.PerformedById == userId).ToListAsync();
     }
     public async Task AddAsync(AuditLog auditLog)
     {

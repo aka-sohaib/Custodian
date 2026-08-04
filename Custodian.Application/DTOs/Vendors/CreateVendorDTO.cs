@@ -12,9 +12,6 @@ namespace Custodian.Application.DTOs.Vendors
         [MaxLength(256)]
         string Email,
 
-        [Range(0, 365, ErrorMessage = "Payment term days must be between 0 and 365.")]
-        int PaymentTermDays,
-
         [MaxLength(50, ErrorMessage = "Phone number cannot exceed 50 characters.")]
         string? Phone
     );

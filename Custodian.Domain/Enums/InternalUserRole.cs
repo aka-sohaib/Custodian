@@ -1,6 +1,6 @@
 ﻿namespace Custodian.Domain.Enums
 {
-    public enum Role
+    public enum InternalUserRole
     {
         Admin,
         Finance,

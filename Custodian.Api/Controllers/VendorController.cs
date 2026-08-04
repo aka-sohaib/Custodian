@@ -42,7 +42,7 @@ public class VendorsController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateVendorDTO dto)
     {
         // 1. Use your Domain Factory Method (which enforces validation rules)
-        var newVendor = Vendor.Create(dto.Name, dto.Phone!, dto.Email, dto.PaymentTermDays);
+        var newVendor = Vendor.Create(dto.Name, dto.Phone!, dto.Email);
 
         // 2. Persist to database via repository
         await _vendorRepository.AddAsync(newVendor);

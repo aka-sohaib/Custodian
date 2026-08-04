@@ -8,8 +8,18 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
+        builder.ToTable("Users");
+
+        builder.HasDiscriminator<string>("UserType")
+            .HasValue<InternalUser>("InternalUser")
+            .HasValue<VendorUser>("VendorUser");
+
         builder.HasKey(u => u.Id);
 
+        builder.Property(u=> u.Name)
+            .IsRequired()
+            .HasMaxLength(256);
+        
         builder.Property(u => u.Email)
             .IsRequired()
             .HasMaxLength(256);
@@ -20,10 +30,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.PasswordHash)
             .IsRequired()
             .HasMaxLength(500);
-
-        builder.Property(u => u.Role)
-            .HasConversion<string>()
-            .HasMaxLength(50);
 
         builder.HasMany(u => u.SubmittedInvoices)
             .WithOne(i => i.SubmittedBy)

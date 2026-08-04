@@ -14,8 +14,11 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.HasIndex(i => new { i.VendorId, i.InvoiceNumber })
+        builder.HasIndex(i => new { i.CompanyVendorId, i.InvoiceNumber })
             .IsUnique();
+
+        builder.Property(i=> i.CompanyVendorId)
+            .IsRequired();
 
         builder.Property(i => i.TotalAmount)
             .HasPrecision(18, 2);
@@ -40,5 +43,11 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .WithOne(a => a.Invoice)
             .HasForeignKey<InvoiceAIAnalysis>(a => a.InvoiceId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(i => i.CompanyAndVendor)
+            .WithMany()
+            .HasForeignKey(i => i.CompanyVendorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
     }
 }

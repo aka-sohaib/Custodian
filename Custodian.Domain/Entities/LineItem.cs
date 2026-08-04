@@ -29,6 +29,22 @@ namespace Custodian.Domain.Entities
             return new LineItem(Guid.NewGuid(), invoiceId, description, quantity, unitPrice);
         }
 
+        //---- Update Method ----
+        public void UpdateLineItem(string description, decimal quantity, decimal unitPrice)
+        {
+            if (string.IsNullOrWhiteSpace(description))
+                throw new ArgumentException("Description is required.", nameof(description));
+            if (quantity <= 0)
+                throw new ArgumentException("Quantity must be greater than zero.", nameof(quantity));
+            if (unitPrice <= 0)
+                throw new ArgumentException("Unit price must be greater than zero.", nameof(unitPrice));
+
+            Description = description;
+            Quantity    = quantity;
+            UnitPrice   = unitPrice;
+            UpdatedAt   = DateTime.UtcNow;
+        }
+
         //---- Properties ----
         public string Description { get; private set; } = null!;
         public decimal Quantity { get; private set; }

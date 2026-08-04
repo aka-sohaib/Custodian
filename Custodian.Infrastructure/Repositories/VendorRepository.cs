@@ -13,18 +13,13 @@ namespace Custodian.Infrastructure.Repositories
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
-        public async Task<Vendor> GetByIdAsync(Guid Id)
+        public async Task<Vendor?> GetByIdAsync(Guid Id)
         {
-            var vendor = await _context.Vendors.FindAsync(Id);
-
-            if(vendor == null) { throw new NotFound(nameof(vendor), Id); }
-            
-            return vendor;
+            return await _context.Vendors.FindAsync(Id);
         }
         public async Task<IEnumerable<Vendor>> GetAllAsync()
         {
-            var vendors = await _context.Vendors.ToListAsync();
-            return vendors;
+            return await _context.Vendors.ToListAsync();
         }
         public async Task AddAsync(Vendor newVendor)
         {

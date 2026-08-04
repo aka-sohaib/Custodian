@@ -9,24 +9,24 @@ namespace Custodian.Domain.Entities
         private Invoice() { }
 
         //---- For Factory ----
-        private Invoice(Guid id, string invoiceNumber, Guid vendorId, Guid submittedById, string currencyCode, DateTime dueDate) : base(id)
+        private Invoice(Guid id, string invoiceNumber, Guid companyVendorId, Guid submittedById, string currencyCode, DateTime dueDate) : base(id)
         {
-            InvoiceNumber = invoiceNumber;
-            VendorId      = vendorId;
-            SubmittedById = submittedById;
-            CurrencyCode  = currencyCode;
-            DueDate       = dueDate;
-            TotalAmount   = decimal.Zero;
-            CurrentStatus = Status.Draft;
+            InvoiceNumber   = invoiceNumber;
+            CompanyVendorId = companyVendorId;
+            SubmittedById   = submittedById;
+            CurrencyCode    = currencyCode;
+            DueDate         = dueDate;
+            TotalAmount     = decimal.Zero;
+            CurrentStatus   = Status.Draft;
         }
 
         //---- Factory Method ----
-        public static Invoice Create(string invoiceNumber, Guid vendorId, Guid submittedById, string currencyCode, DateTime dueDate)
+        public static Invoice Create(string invoiceNumber, Guid companyVendorId, Guid submittedById, string currencyCode, DateTime dueDate)
         {
             if (string.IsNullOrWhiteSpace(invoiceNumber))
                 throw new ArgumentException("Invoice number is required.", nameof(invoiceNumber));
-            if (vendorId == Guid.Empty)
-                throw new ArgumentException("Vendor ID is required.", nameof(vendorId));
+            if (companyVendorId == Guid.Empty)
+                throw new ArgumentException("Company Vendor Connection ID is required.", nameof(companyVendorId));
             if (submittedById == Guid.Empty)
                 throw new ArgumentException("Submitted by ID is required.", nameof(submittedById));
             if (string.IsNullOrWhiteSpace(currencyCode))
@@ -34,7 +34,7 @@ namespace Custodian.Domain.Entities
             if (dueDate <= DateTime.UtcNow)
                 throw new ArgumentException("Due date must be in the future.", nameof(dueDate));
 
-            return new Invoice(Guid.NewGuid(), invoiceNumber, vendorId, submittedById, currencyCode, dueDate);
+            return new Invoice(Guid.NewGuid(), invoiceNumber, companyVendorId, submittedById, currencyCode, dueDate);
         }
 
         //---- Update Method ----
@@ -47,7 +47,9 @@ namespace Custodian.Domain.Entities
             if (dueDate <= DateTime.UtcNow)
                 throw new ArgumentException("Due date must be in the future.", nameof(dueDate));
 
-            this.CurrencyCode = currencyCode; this.DueDate = dueDate;
+            CurrencyCode = currencyCode;
+            DueDate      = dueDate;
+            UpdatedAt    = DateTime.UtcNow;
         }
 
         //---- Status Update Methods ----
@@ -57,6 +59,7 @@ namespace Custodian.Domain.Entities
                 throw new InvalidOperationException($"Cannot submit invoice from state: {CurrentStatus}");
 
             CurrentStatus = Status.Submitted;
+            UpdatedAt     = DateTime.UtcNow;
         }
         public void BeginReview()
         {
@@ -64,6 +67,7 @@ namespace Custodian.Domain.Entities
                 throw new InvalidOperationException($"Cannot begin review from state: {CurrentStatus}");
 
             CurrentStatus = Status.UnderReview;
+            UpdatedAt     = DateTime.UtcNow;
         }
         public void Approve()
         {
@@ -71,6 +75,7 @@ namespace Custodian.Domain.Entities
                 throw new InvalidOperationException($"Cannot approve from state: {CurrentStatus}");
 
             CurrentStatus = Status.Approved;
+            UpdatedAt     = DateTime.UtcNow;
         }
         public void Reject(string reason)
         {
@@ -79,6 +84,7 @@ namespace Custodian.Domain.Entities
             if (string.IsNullOrWhiteSpace(reason))
                 throw new ArgumentException("You must provide a reason for rejection.");
             CurrentStatus = Status.Rejected;
+            UpdatedAt     = DateTime.UtcNow;
         }
 
         //---- Properties ----
@@ -89,11 +95,11 @@ namespace Custodian.Domain.Entities
         public string CurrencyCode { get; private set; } = null!;
 
         //---- Foreign Keys ----
-        public Guid VendorId { get; private set; }
+        public Guid CompanyVendorId { get; private set; }
         public Guid SubmittedById { get; private set; }
 
         //---- Navigation Properties ----
-        public Vendor Vendor { get; private set; } = null!;
+        public CompanyVendor CompanyAndVendor { get; private set; } = null!;
         public User SubmittedBy { get; private set; } = null!;
         public ICollection<LineItem> LineItems { get; private set; } = new List<LineItem>();
         public InvoiceAIAnalysis? AIAnalysis { get; private set; }

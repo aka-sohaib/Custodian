@@ -8,48 +8,44 @@ namespace Custodian.Domain.Entities
         private Vendor() { }
 
         //---- For Factory ----
-        private Vendor(Guid id, string name, string phone, string contactEmail, int paymentTermDays) : base(id)
+        private Vendor(Guid id, string name, string phone, string contactEmail) : base(id)
         {
             Name            = name;
             Phone           = phone;
             ContactEmail    = contactEmail;
-            PaymentTermDays = paymentTermDays;
         }
 
         //---- Factory Method ----
-        public static Vendor Create(string name, string phone, string contactEmail, int paymentTermDays)
+        public static Vendor Create(string name, string phone, string contactEmail)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Vendor name is required.", nameof(name));
             if (string.IsNullOrWhiteSpace(contactEmail))
                 throw new ArgumentException("Contact email is required.", nameof(contactEmail));
-            if (paymentTermDays < 0)
-                throw new ArgumentException("Payment term days cannot be negative.", nameof(paymentTermDays));
 
-            return new Vendor(Guid.NewGuid(), name, phone, contactEmail, paymentTermDays);
+            return new Vendor(Guid.NewGuid(), name, phone, contactEmail);
         }
 
         //----Update Method----
-        public void Update(string name, string phone, string contactEmail, int paymentTermDays)
+        public void Update(string name, string phone, string contactEmail)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Vendor name is required.", nameof(name));
             if (string.IsNullOrWhiteSpace(contactEmail))
                 throw new ArgumentException("Contact email is required.", nameof(contactEmail));
-            if (paymentTermDays < 0)
-                throw new ArgumentException("Payment term days cannot be negative.", nameof(paymentTermDays));
 
-            this.Name = name; this.Phone = phone; this.ContactEmail = contactEmail; this.PaymentTermDays = paymentTermDays;
-            this.UpdatedAt = DateTime.UtcNow;
+            Name         = name;
+            Phone        = phone;
+            ContactEmail = contactEmail;
+            UpdatedAt    = DateTime.UtcNow;
         }
 
         //---- Properties ----
         public string Name { get; private set; } = null!;
         public string Phone { get; private set; } = null!;
-        public int PaymentTermDays { get; private set; }
         public string ContactEmail { get; private set; } = null!;
 
         //---- Navigation Properties ----
-        public ICollection<Invoice> Invoices { get; private set; } = new List<Invoice>();
+        public ICollection<CompanyVendor> CompanyVendorConnections { get; private set; } = new List<CompanyVendor>();
     }
 }

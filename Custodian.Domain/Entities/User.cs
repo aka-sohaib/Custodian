@@ -1,49 +1,46 @@
-using Custodian.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 
-namespace Custodian.Domain.Entities
+namespace Custodian.Domain.Entities;
+
+public abstract class User : BaseEntity
 {
-    public class User : BaseEntity
+    protected User () { }
+    protected User (Guid id, string name, string email, string password) : base(id)
     {
-        //---- For EF Core ----
-        private User() { }
-
-        //---- For Factory ----
-        private User(Guid id, string email, string passwordHash, Role role) : base(id)
-        {
-            Email        = email;
-            PasswordHash = passwordHash;
-            Role         = role;
-        }
-
-        //---- Factory Method ----
-        public static User Create(string email, string passwordHash, Role role)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentException("Email is required.", nameof(email));
-            if (string.IsNullOrWhiteSpace(passwordHash))
-                throw new ArgumentException("Password hash is required.", nameof(passwordHash));
-
-            return new User(Guid.NewGuid(), email, passwordHash, role);
-        }
-
-        //---- Update Method ----
-        public void Update(string email, string passwordHash, Role role)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentException("Email is required.", nameof(email));
-            if (string.IsNullOrWhiteSpace(passwordHash))
-                throw new ArgumentException("Password hash is required.", nameof(passwordHash));
-
-            this.Email = email; this.PasswordHash = passwordHash; this.Role = role;
-        }
-
-        //---- Properties ----
-        public string Email { get; private set; } = null!;
-        public string PasswordHash { get; private set; } = null!;
-        public Role Role { get; private set; }
-
-        //---- Navigation Properties ----
-        public ICollection<Invoice> SubmittedInvoices { get; private set; } = new List<Invoice>();
-        public ICollection<AuditLog> AuditLogs { get; private set; } = new List<AuditLog>();
+        ValidateAndSet(name, email, password);
     }
+    //---- Update Base Method ----
+    protected void UpdateBaseUser(string name, string email, string passwordHash)
+    {
+        ValidateAndSet (name, email, passwordHash);
+    }
+
+    //---- Validation For Base Properties ----
+    private void ValidateAndSet(string name, string email, string passwordHash)
+    {
+        var emailValidator = new EmailAddressAttribute();
+
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Name is required.", nameof(name));
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
+        if (!emailValidator.IsValid(email))
+            throw new ArgumentException("Invalid email format.", nameof(email));
+        if (string.IsNullOrWhiteSpace(passwordHash))
+            throw new ArgumentException("Password hash is required.", nameof(passwordHash));
+
+        Name         = name;
+        Email        = email;
+        PasswordHash = passwordHash;
+        UpdatedAt    = DateTime.UtcNow;
+    }
+
+    //---- Properties ----
+    public string Name         { get; protected set; } = null!;
+    public string Email        { get; protected set; } = null!;
+    public string PasswordHash { get; protected set; } = null!;
+
+    //---- Navigation Properties ----
+    public ICollection<Invoice> SubmittedInvoices { get; private set; } = new List<Invoice>();
+    public ICollection<AuditLog> AuditLogs { get; private set; } = new List<AuditLog>();
 }
