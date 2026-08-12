@@ -14,17 +14,23 @@ namespace Custodian.Infrastructure.Repositories
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
-        public async Task<Invoice?> GetByIdAsync(Guid Id)
+        public async Task<Invoice?> GetByIdAsync(Guid Id, bool readOnly = false)
         {
-            return await _context.Invoices.FindAsync(Id);
+            var query = _context.Invoices
+                                .Include(i => i.LineItems)
+                                .AsQueryable();
+            if (readOnly)
+                query.AsNoTracking();
+
+            return await query.FirstOrDefaultAsync(i=> i.Id == Id);
         }
         public async Task<IEnumerable<Invoice>> GetAllAsync()
         {
             return await _context.Invoices.ToListAsync();
         }
-        public async Task<IEnumerable<Invoice>> GetByCompanyVendorIdAsync(Guid companyVendorId)
+        public async Task<IEnumerable<Invoice>> GetByOrganizationConnectionIdAsync(Guid organizationConnectionId)
         {
-            return await _context.Invoices.Where(i => i.CompanyVendorId == companyVendorId).ToListAsync();
+            return await _context.Invoices.Where(i => i.OrganizationConnectionId == organizationConnectionId).ToListAsync();
         }
         public async Task<IEnumerable<Invoice>> GetBySubmitterAsync(Guid userId)
         {

@@ -8,25 +8,25 @@ public class InternalUser : User
     private InternalUser() { }
 
     //---- For Factory ----
-    private InternalUser(string name, string email, string passwordHash, InternalUserRole role, Guid companyId) : base( Guid.NewGuid() ,name, email, passwordHash)
+    private InternalUser(string name, string email, string passwordHash, InternalUserRole role, Guid organizationId) 
+        : base(Guid.NewGuid(), name, email, passwordHash, organizationId)
     {
         InternalUserRole = role;
-        CompanyId        = companyId;
     }
 
     //---- Factory Method ----
-    public static InternalUser CreateInternalUser(string name,string email, string passwordHash, InternalUserRole role, Guid companyId) 
+    public static InternalUser CreateInternalUser(string name, string email, string passwordHash, InternalUserRole role, Guid organizationId) 
     {
         if (!Enum.IsDefined(typeof(InternalUserRole), role))
             throw new ArgumentException("Role is not valid.", nameof(role));
-        if (Guid.Empty == companyId)
-            throw new ArgumentException("Company ID is not valid.", nameof(companyId));
+        if (Guid.Empty == organizationId)
+            throw new ArgumentException("Organization ID is not valid.", nameof(organizationId));
 
-        return new InternalUser(name, email, passwordHash, role, companyId);
+        return new InternalUser(name, email, passwordHash, role, organizationId);
     }
 
     //---- Update Method ----
-    public void Update(string name, string email, string passwordHash ,InternalUserRole role)
+    public void Update(string name, string email, string passwordHash, InternalUserRole role)
     {
         base.UpdateBaseUser(name, email, passwordHash);
         if (!Enum.IsDefined(typeof(InternalUserRole), role))
@@ -38,8 +38,4 @@ public class InternalUser : User
 
     //---- Properties ----
     public InternalUserRole InternalUserRole { get; private set; }
-    public Guid CompanyId                    { get; private set; }
-
-    //---- Navigational Properties ----
-    public Company Company { get; private set; } = null!;
 }

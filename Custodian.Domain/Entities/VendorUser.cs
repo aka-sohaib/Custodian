@@ -8,21 +8,21 @@ public class VendorUser : User
     private VendorUser() { }
 
     //---- For Factory ----
-    private VendorUser(string name, string email, string passwordHash, Guid vendorId, VendorUserRole role) : base(Guid.NewGuid(), name, email, passwordHash)
+    private VendorUser(string name, string email, string passwordHash, Guid organizationId, VendorUserRole role) 
+        : base(Guid.NewGuid(), name, email, passwordHash, organizationId)
     {
-        VendorId       = vendorId;
         VendorUserRole = role;
     }
 
     //---- Factory Method ----
-    public static VendorUser CreateVendorUser(string name, string email, string passwordHash, Guid vendorId, VendorUserRole role)
+    public static VendorUser CreateVendorUser(string name, string email, string passwordHash, Guid organizationId, VendorUserRole role)
     {
-        if (Guid.Empty == vendorId)
-            throw new ArgumentException("Vendor ID is not valid.", nameof(vendorId));
-        if(!Enum.IsDefined(role))
+        if (Guid.Empty == organizationId)
+            throw new ArgumentException("Organization ID is not valid.", nameof(organizationId));
+        if (!Enum.IsDefined(role))
             throw new ArgumentException("Vendor Role is not valid.", nameof(role));
 
-        return new VendorUser(name, email, passwordHash, vendorId, role);
+        return new VendorUser(name, email, passwordHash, organizationId, role);
     }
 
     //---- Update Method ----
@@ -38,9 +38,5 @@ public class VendorUser : User
     }
 
     //---- Properties ----
-    public Guid VendorId           { get; private set; }
     public VendorUserRole VendorUserRole { get; private set; }
-
-    //---- Navigational Properties ----
-    public Vendor Vendor { get; private set; } = null!;
 }

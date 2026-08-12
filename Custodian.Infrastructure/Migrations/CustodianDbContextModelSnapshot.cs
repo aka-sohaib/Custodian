@@ -103,99 +103,6 @@ namespace Custodian.Infrastructure.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("Custodian.Domain.Entities.Company", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.ToTable("Companies");
-                });
-
-            modelBuilder.Entity("Custodian.Domain.Entities.CompanyVendor", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CompanyId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ConnectionStatus")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("PaymentTermDays")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("RequestedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("RespondedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("RespondedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("VendorId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RequestedById");
-
-                    b.HasIndex("RespondedById");
-
-                    b.HasIndex("VendorId");
-
-                    b.HasIndex("CompanyId", "VendorId")
-                        .IsUnique();
-
-                    b.ToTable("CompanyAndVendorConnections", t =>
-                        {
-                            t.HasCheckConstraint("CK_CompanyVendor_PaymentTermDays_GreaterThanOne", "\"PaymentTermDays\" >= 1");
-                        });
-                });
-
             modelBuilder.Entity("Custodian.Domain.Entities.Invitation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -204,9 +111,6 @@ namespace Custodian.Infrastructure.Migrations
 
                     b.Property<DateTime?>("AcceptedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("CompanyId")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -234,6 +138,9 @@ namespace Custodian.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -242,20 +149,15 @@ namespace Custodian.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("VendorId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("VendorUserRole")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("InvitedById");
 
-                    b.HasIndex("VendorId");
+                    b.HasIndex("OrganizationId");
 
                     b.ToTable("Invitations");
                 });
@@ -264,9 +166,6 @@ namespace Custodian.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CompanyVendorId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -293,12 +192,19 @@ namespace Custodian.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid?>("OrganizationConnectionId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("SubmittedById")
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("UnregisteredVendorName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -307,8 +213,9 @@ namespace Custodian.Infrastructure.Migrations
 
                     b.HasIndex("SubmittedById");
 
-                    b.HasIndex("CompanyVendorId", "InvoiceNumber")
-                        .IsUnique();
+                    b.HasIndex("OrganizationConnectionId", "InvoiceNumber")
+                        .IsUnique()
+                        .HasFilter("\"OrganizationConnectionId\" IS NOT NULL");
 
                     b.ToTable("Invoices");
                 });
@@ -393,6 +300,104 @@ namespace Custodian.Infrastructure.Migrations
                     b.ToTable("LineItems");
                 });
 
+            modelBuilder.Entity("Custodian.Domain.Entities.Organization", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<bool>("IsCompany")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsVendor")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Phone")
+                        .IsUnique();
+
+                    b.ToTable("Organizations", (string)null);
+                });
+
+            modelBuilder.Entity("Custodian.Domain.Entities.OrganizationConnection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BuyerOrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ConnectionStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("PaymentTermDays")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("RequestedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("RespondedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("RespondedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SellerOrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestedById");
+
+                    b.HasIndex("RespondedById");
+
+                    b.HasIndex("SellerOrganizationId");
+
+                    b.HasIndex("BuyerOrganizationId", "SellerOrganizationId")
+                        .IsUnique();
+
+                    b.ToTable("OrganizationConnections", (string)null);
+                });
+
             modelBuilder.Entity("Custodian.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -415,6 +420,9 @@ namespace Custodian.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -433,6 +441,8 @@ namespace Custodian.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
+                    b.HasIndex("OrganizationId");
+
                     b.ToTable("Users", (string)null);
 
                     b.HasDiscriminator<string>("UserType").HasValue("User");
@@ -440,57 +450,14 @@ namespace Custodian.Infrastructure.Migrations
                     b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("Custodian.Domain.Entities.Vendor", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ContactEmail")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ContactEmail")
-                        .IsUnique();
-
-                    b.ToTable("Vendors");
-                });
-
             modelBuilder.Entity("Custodian.Domain.Entities.InternalUser", b =>
                 {
                     b.HasBaseType("Custodian.Domain.Entities.User");
-
-                    b.Property<Guid>("CompanyId")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("InternalUserRole")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.HasIndex("CompanyId");
 
                     b.HasDiscriminator().HasValue("InternalUser");
                 });
@@ -499,15 +466,10 @@ namespace Custodian.Infrastructure.Migrations
                 {
                     b.HasBaseType("Custodian.Domain.Entities.User");
 
-                    b.Property<Guid>("VendorId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("VendorUserRole")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.HasIndex("VendorId");
 
                     b.HasDiscriminator().HasValue("VendorUser");
                 });
@@ -523,72 +485,31 @@ namespace Custodian.Infrastructure.Migrations
                     b.Navigation("PerformedBy");
                 });
 
-            modelBuilder.Entity("Custodian.Domain.Entities.CompanyVendor", b =>
-                {
-                    b.HasOne("Custodian.Domain.Entities.Company", "Company")
-                        .WithMany("CompanyVendorConnections")
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Custodian.Domain.Entities.InternalUser", "InternalUser")
-                        .WithMany()
-                        .HasForeignKey("RequestedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Custodian.Domain.Entities.VendorUser", "VendorUser")
-                        .WithMany()
-                        .HasForeignKey("RespondedById")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Custodian.Domain.Entities.Vendor", "Vendor")
-                        .WithMany("CompanyVendorConnections")
-                        .HasForeignKey("VendorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Company");
-
-                    b.Navigation("InternalUser");
-
-                    b.Navigation("Vendor");
-
-                    b.Navigation("VendorUser");
-                });
-
             modelBuilder.Entity("Custodian.Domain.Entities.Invitation", b =>
                 {
-                    b.HasOne("Custodian.Domain.Entities.Company", "Company")
-                        .WithMany("Invitations")
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Custodian.Domain.Entities.User", "InvitedBy")
                         .WithMany()
                         .HasForeignKey("InvitedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Custodian.Domain.Entities.Vendor", "Vendor")
-                        .WithMany()
-                        .HasForeignKey("VendorId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Company");
+                    b.HasOne("Custodian.Domain.Entities.Organization", "Organization")
+                        .WithMany("Invitations")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("InvitedBy");
 
-                    b.Navigation("Vendor");
+                    b.Navigation("Organization");
                 });
 
             modelBuilder.Entity("Custodian.Domain.Entities.Invoice", b =>
                 {
-                    b.HasOne("Custodian.Domain.Entities.CompanyVendor", "CompanyAndVendor")
+                    b.HasOne("Custodian.Domain.Entities.OrganizationConnection", "OrganizationConnection")
                         .WithMany()
-                        .HasForeignKey("CompanyVendorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("OrganizationConnectionId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Custodian.Domain.Entities.User", "SubmittedBy")
                         .WithMany("SubmittedInvoices")
@@ -596,7 +517,7 @@ namespace Custodian.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("CompanyAndVendor");
+                    b.Navigation("OrganizationConnection");
 
                     b.Navigation("SubmittedBy");
                 });
@@ -631,40 +552,54 @@ namespace Custodian.Infrastructure.Migrations
                     b.Navigation("Invoice");
                 });
 
-            modelBuilder.Entity("Custodian.Domain.Entities.InternalUser", b =>
+            modelBuilder.Entity("Custodian.Domain.Entities.OrganizationConnection", b =>
                 {
-                    b.HasOne("Custodian.Domain.Entities.Company", "Company")
-                        .WithMany("InternalUsers")
-                        .HasForeignKey("CompanyId")
+                    b.HasOne("Custodian.Domain.Entities.Organization", "BuyerOrganization")
+                        .WithMany("VendorConnections")
+                        .HasForeignKey("BuyerOrganizationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Company");
+                    b.HasOne("Custodian.Domain.Entities.User", "RequestedBy")
+                        .WithMany()
+                        .HasForeignKey("RequestedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Custodian.Domain.Entities.User", "RespondedBy")
+                        .WithMany()
+                        .HasForeignKey("RespondedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Custodian.Domain.Entities.Organization", "SellerOrganization")
+                        .WithMany("ClientConnections")
+                        .HasForeignKey("SellerOrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BuyerOrganization");
+
+                    b.Navigation("RequestedBy");
+
+                    b.Navigation("RespondedBy");
+
+                    b.Navigation("SellerOrganization");
                 });
 
-            modelBuilder.Entity("Custodian.Domain.Entities.VendorUser", b =>
+            modelBuilder.Entity("Custodian.Domain.Entities.User", b =>
                 {
-                    b.HasOne("Custodian.Domain.Entities.Vendor", "Vendor")
-                        .WithMany()
-                        .HasForeignKey("VendorId")
+                    b.HasOne("Custodian.Domain.Entities.Organization", "Organization")
+                        .WithMany("Users")
+                        .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Vendor");
+                    b.Navigation("Organization");
                 });
 
             modelBuilder.Entity("Custodian.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Analyses");
-                });
-
-            modelBuilder.Entity("Custodian.Domain.Entities.Company", b =>
-                {
-                    b.Navigation("CompanyVendorConnections");
-
-                    b.Navigation("InternalUsers");
-
-                    b.Navigation("Invitations");
                 });
 
             modelBuilder.Entity("Custodian.Domain.Entities.Invoice", b =>
@@ -674,16 +609,22 @@ namespace Custodian.Infrastructure.Migrations
                     b.Navigation("LineItems");
                 });
 
+            modelBuilder.Entity("Custodian.Domain.Entities.Organization", b =>
+                {
+                    b.Navigation("ClientConnections");
+
+                    b.Navigation("Invitations");
+
+                    b.Navigation("Users");
+
+                    b.Navigation("VendorConnections");
+                });
+
             modelBuilder.Entity("Custodian.Domain.Entities.User", b =>
                 {
                     b.Navigation("AuditLogs");
 
                     b.Navigation("SubmittedInvoices");
-                });
-
-            modelBuilder.Entity("Custodian.Domain.Entities.Vendor", b =>
-                {
-                    b.Navigation("CompanyVendorConnections");
                 });
 #pragma warning restore 612, 618
         }

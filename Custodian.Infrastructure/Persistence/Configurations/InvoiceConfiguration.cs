@@ -14,11 +14,16 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.HasIndex(i => new { i.CompanyVendorId, i.InvoiceNumber })
-            .IsUnique();
+        builder.HasIndex(i => new { i.OrganizationConnectionId, i.InvoiceNumber })
+            .IsUnique()
+            .HasFilter("\"OrganizationConnectionId\" IS NOT NULL");
 
-        builder.Property(i=> i.CompanyVendorId)
-            .IsRequired();
+        builder.Property(i => i.OrganizationConnectionId)
+            .IsRequired(false);
+
+        builder.Property(i => i.UnregisteredVendorName)
+            .HasMaxLength(256)
+            .IsRequired(false);
 
         builder.Property(i => i.TotalAmount)
             .HasPrecision(18, 2);
@@ -44,10 +49,9 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .HasForeignKey<InvoiceAIAnalysis>(a => a.InvoiceId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(i => i.CompanyAndVendor)
+        builder.HasOne(i => i.OrganizationConnection)
             .WithMany()
-            .HasForeignKey(i => i.CompanyVendorId)
+            .HasForeignKey(i => i.OrganizationConnectionId)
             .OnDelete(DeleteBehavior.Restrict);
-
     }
 }

@@ -16,10 +16,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasKey(u => u.Id);
 
-        builder.Property(u=> u.Name)
+        builder.Property(u => u.Name)
             .IsRequired()
             .HasMaxLength(256);
-        
+
         builder.Property(u => u.Email)
             .IsRequired()
             .HasMaxLength(256);
@@ -30,6 +30,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.PasswordHash)
             .IsRequired()
             .HasMaxLength(500);
+
+        builder.Property(u => u.OrganizationId)
+            .IsRequired();
+
+        builder.HasOne(u => u.Organization)
+            .WithMany(o => o.Users)
+            .HasForeignKey(u => u.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(u => u.SubmittedInvoices)
             .WithOne(i => i.SubmittedBy)

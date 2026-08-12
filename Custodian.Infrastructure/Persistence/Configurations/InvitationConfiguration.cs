@@ -37,14 +37,9 @@ public class InvitationConfiguration : IEntityTypeConfiguration<Invitation>
         builder.Property(i => i.AcceptedAt);
 
         // Relationships
-        builder.HasOne(i => i.Company)
-            .WithMany(c => c.Invitations)
-            .HasForeignKey(i => i.CompanyId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne(i => i.Vendor)
-            .WithMany()
-            .HasForeignKey(i => i.VendorId)
+        builder.HasOne(i => i.Organization)
+            .WithMany(o => o.Invitations)
+            .HasForeignKey(i => i.OrganizationId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(i => i.InvitedBy)

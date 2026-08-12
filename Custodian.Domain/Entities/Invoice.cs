@@ -9,32 +9,35 @@ namespace Custodian.Domain.Entities
         private Invoice() { }
 
         //---- For Factory ----
-        private Invoice(Guid id, string invoiceNumber, Guid companyVendorId, Guid submittedById, string currencyCode, DateTime dueDate) : base(id)
+        private Invoice(Guid id, string invoiceNumber, Guid? organizationConnectionId, string? unregisteredVendorName, Guid submittedById, string currencyCode, DateTime dueDate) : base(id)
         {
-            InvoiceNumber   = invoiceNumber;
-            CompanyVendorId = companyVendorId;
-            SubmittedById   = submittedById;
-            CurrencyCode    = currencyCode;
-            DueDate         = dueDate;
-            TotalAmount     = decimal.Zero;
-            CurrentStatus   = Status.Draft;
+            InvoiceNumber            = invoiceNumber;
+            OrganizationConnectionId = organizationConnectionId;
+            UnregisteredVendorName   = unregisteredVendorName;
+            SubmittedById            = submittedById;
+            CurrencyCode             = currencyCode;
+            DueDate                  = dueDate;
+            TotalAmount              = decimal.Zero;
+            CurrentStatus            = Status.Draft;
         }
 
         //---- Factory Method ----
-        public static Invoice Create(string invoiceNumber, Guid companyVendorId, Guid submittedById, string currencyCode, DateTime dueDate)
+        public static Invoice Create(string invoiceNumber, Guid? organizationConnectionId, string? unregisteredVendorName, Guid submittedById, string currencyCode, DateTime dueDate)
         {
             if (string.IsNullOrWhiteSpace(invoiceNumber))
                 throw new ArgumentException("Invoice number is required.", nameof(invoiceNumber));
-            if (companyVendorId == Guid.Empty)
-                throw new ArgumentException("Company Vendor Connection ID is required.", nameof(companyVendorId));
             if (submittedById == Guid.Empty)
                 throw new ArgumentException("Submitted by ID is required.", nameof(submittedById));
             if (string.IsNullOrWhiteSpace(currencyCode))
                 throw new ArgumentException("Currency code is required.", nameof(currencyCode));
             if (dueDate <= DateTime.UtcNow)
                 throw new ArgumentException("Due date must be in the future.", nameof(dueDate));
+            if (string.IsNullOrWhiteSpace(unregisteredVendorName) && organizationConnectionId == null)
+                throw new ArgumentException("An invoice must have either a registered Organization or an Unregistered Vendor Name.");
+            if (organizationConnectionId != null && !string.IsNullOrWhiteSpace(unregisteredVendorName))
+                throw new ArgumentException("An invoice cannot have both a registered Organization and an Unregistered Vendor Name.");
 
-            return new Invoice(Guid.NewGuid(), invoiceNumber, companyVendorId, submittedById, currencyCode, dueDate);
+            return new Invoice(Guid.NewGuid(), invoiceNumber, organizationConnectionId, unregisteredVendorName, submittedById, currencyCode, dueDate);
         }
 
         //---- Update Method ----
@@ -95,11 +98,12 @@ namespace Custodian.Domain.Entities
         public string CurrencyCode { get; private set; } = null!;
 
         //---- Foreign Keys ----
-        public Guid CompanyVendorId { get; private set; }
-        public Guid SubmittedById { get; private set; }
+        public Guid? OrganizationConnectionId { get; private set; }
+        public string? UnregisteredVendorName { get; private set; }
+        public Guid SubmittedById            { get; private set; }
 
         //---- Navigation Properties ----
-        public CompanyVendor CompanyAndVendor { get; private set; } = null!;
+        public OrganizationConnection OrganizationConnection { get; private set; } = null!;
         public User SubmittedBy { get; private set; } = null!;
         public ICollection<LineItem> LineItems { get; private set; } = new List<LineItem>();
         public InvoiceAIAnalysis? AIAnalysis { get; private set; }

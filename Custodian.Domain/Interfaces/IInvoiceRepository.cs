@@ -5,9 +5,9 @@ namespace Custodian.Domain.Interfaces
 {
     public interface IInvoiceRepository
     {
-        Task<Invoice?> GetByIdAsync(Guid id);
+        Task<Invoice?> GetByIdAsync(Guid id, bool readOnly = false);
         Task<IEnumerable<Invoice>> GetAllAsync();
-        Task<IEnumerable<Invoice>> GetByCompanyVendorIdAsync(Guid companyVendorId);
+        Task<IEnumerable<Invoice>> GetByOrganizationConnectionIdAsync(Guid organizationConnectionId);
         Task<IEnumerable<Invoice>> GetBySubmitterAsync(Guid userId);
         Task<IEnumerable<Invoice>> GetByStatusAsync(Status status);
         Task<IEnumerable<Invoice>> GetByDateRangeAsync(DateTime from, DateTime to);

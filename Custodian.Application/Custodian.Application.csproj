@@ -7,7 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+	<PackageReference Include="Azure.AI.DocumentIntelligence" Version="1.0.0" />
+	<PackageReference Include="FluentValidation" Version="12.1.1" />
+	<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+	<PackageReference Include="Isopoh.Cryptography.Argon2" Version="2.0.0" />
+	<PackageReference Include="MediatR" Version="12.2.0" />
 	<PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Custodian.Domain\Custodian.Domain.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
 
 </Project>
