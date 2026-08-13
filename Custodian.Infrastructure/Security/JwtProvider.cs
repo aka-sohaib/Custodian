@@ -1,4 +1,4 @@
-﻿using Custodian.Application.Common.Interfaces;
+using Custodian.Application.Common.Interfaces;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Options;
@@ -19,7 +19,9 @@ public class JwtProvider: IJwtProvider
         var claims = new List<Claim>()
         {
             new Claim(JwtRegisteredClaimNames.Sub, UserId.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, UserId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, Email),
+            new Claim(ClaimTypes.Role, Role),
             new Claim("role", Role)
         };
 

@@ -1,3 +1,4 @@
+using Custodian.Application.Common.Exceptions;
 using Custodian.Application.Common.Interfaces;
 using Custodian.Domain.Entities;
 using Custodian.Domain.Enums;
@@ -11,13 +12,20 @@ public class CreateInvoiceCommandHandler: IRequestHandler<CreateInvoiceCommand, 
     private readonly IInternalUserRepository _internalUserRepository;
     private readonly IVendorUserRepository _vendorRepository;
     private readonly IInvoiceRepository _invoiceRepository;
+    private readonly IOrganizationConnectionRepository _connectionRepository;
     private readonly ICurrentUserService _currentUserService;
 
-    public CreateInvoiceCommandHandler(IInternalUserRepository internalUserRepository, IVendorUserRepository vendorRepository, IInvoiceRepository invoiceRepository, ICurrentUserService currentUserService)
+    public CreateInvoiceCommandHandler(
+        IInternalUserRepository internalUserRepository,
+        IVendorUserRepository vendorRepository,
+        IInvoiceRepository invoiceRepository,
+        IOrganizationConnectionRepository connectionRepository,
+        ICurrentUserService currentUserService)
     {
         _internalUserRepository = internalUserRepository;
         _vendorRepository = vendorRepository;
         _invoiceRepository = invoiceRepository;
+        _connectionRepository = connectionRepository;
         _currentUserService = currentUserService;
     }
 
@@ -37,6 +45,16 @@ public class CreateInvoiceCommandHandler: IRequestHandler<CreateInvoiceCommand, 
         if (isVendor && !command.OrganizationConnectionId.HasValue)
         {
             throw new UnauthorizedAccessException("Vendors must submit invoices under their registered organization connection.");
+        }
+
+        //---- Validate Organization Connection existence if specified ----
+        if (command.OrganizationConnectionId.HasValue)
+        {
+            var connection = await _connectionRepository.GetByIdAsync(command.OrganizationConnectionId.Value);
+            if (connection == null)
+            {
+                throw new NotFoundException("Organization connection", command.OrganizationConnectionId.Value);
+            }
         }
 
         //---- create invoice ----

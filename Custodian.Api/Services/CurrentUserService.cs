@@ -1,4 +1,5 @@
-﻿using Custodian.Application.Common.Interfaces;
+using Custodian.Application.Common.Interfaces;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace Custodian.Api.Services
@@ -16,7 +17,11 @@ namespace Custodian.Api.Services
         {
             get
             {
-                var userIdString = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user = _httpContextAccessor.HttpContext?.User;
+                var userIdString = user?.FindFirstValue(ClaimTypes.NameIdentifier)
+                                ?? user?.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                                ?? user?.FindFirstValue("sub");
+
                 return Guid.TryParse(userIdString, out var userId) ? userId : Guid.Empty;
             }
         }
@@ -24,7 +29,10 @@ namespace Custodian.Api.Services
         {
             get
             {
-                return _httpContextAccessor?.HttpContext?.User?.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+                var user = _httpContextAccessor.HttpContext?.User;
+                return user?.FindFirstValue(ClaimTypes.Role)
+                    ?? user?.FindFirstValue("role")
+                    ?? string.Empty;
             }
         }
     }
