@@ -1,9 +1,10 @@
 using FluentValidation;
-namespace Custodian.Application.Features.Invitations.InviteVendor.Commands;
 
-public class InviteVendorCommandValidator: AbstractValidator<InviteVendorCommand>
+namespace Custodian.Application.Features.Invitations.InviteCompany.Commands;
+
+public class InviteCompanyCommandValidator : AbstractValidator<InviteCompanyCommand>
 {
-    public InviteVendorCommandValidator()
+    public InviteCompanyCommandValidator()
     {
         RuleFor(v => v.email)
             .NotEmpty().WithMessage("Email is required.")

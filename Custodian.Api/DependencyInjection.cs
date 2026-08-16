@@ -18,6 +18,7 @@ public static class DependencyInjection
         services.AddExceptionHandler<UnauthorizedExceptionHandler>();
         services.AddExceptionHandler<ConflictExceptionHandler>();
         services.AddExceptionHandler<NotFoundExceptionHandler>();
+        services.AddExceptionHandler<BadRequestExceptionHandler>();
         services.AddExceptionHandler<ExternalServiceExceptionHandler>();
         services.AddExceptionHandler<GlobalEceptionHandler>();
 

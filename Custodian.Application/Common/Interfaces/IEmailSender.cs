@@ -1,6 +1,7 @@
-﻿namespace Custodian.Application.Common.Interfaces;
+namespace Custodian.Application.Common.Interfaces;
 
 public interface IEmailSender
 {
-    Task SendInvitationEmailAsync(string toEmail, string acceptURL, CancellationToken cancellationToken);
+    //---- Send single unified email ----
+    Task SendEmailAsync(string toEmail, string subject, string htmlBody, CancellationToken cancellationToken = default);
 }

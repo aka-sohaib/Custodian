@@ -10,6 +10,8 @@ using Custodian.Infrastructure.Notifications;
 using Custodian.Infrastructure.Scanners;
 using Resend;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.Options;
@@ -31,7 +33,11 @@ public static class DependencyInjection
         services.AddScoped<IInvitationRepository, InvitationRepository>();
         services.AddScoped<IOrganizationRepository, OrganizationRepository>();
         services.AddScoped<IOrganizationConnectionRepository, OrganizationConnectionRepository>();
-        services.AddTransient<IEmailSender, ResendEmailSender>();
+
+        // ---- Register Email Settings & Services ----
+        services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
+        services.AddTransient<ResendEmailSender>();
+        services.AddTransient<IEmailSender, DevEmailRedirectDecorator>();
 
         // ---- Register Scanners ----
         services.AddScoped<IInvoiceScanner, AzureInvoiceScanner>();
@@ -41,7 +47,7 @@ public static class DependencyInjection
         services.AddScoped<IJwtProvider, JwtProvider>();
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
 
-        // ---- Register resend ----
+        // ---- Register Resend ----
         var resendApiKey = configuration["Resend:ApiKey"] ?? string.Empty;
         services.AddResend(options => options.ApiToken = resendApiKey);
 
@@ -74,6 +80,38 @@ public static class DependencyInjection
                 ValidIssuer = jwtSettings.Issuer,
                 ValidAudience = jwtSettings.Audience,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
+            };
+
+            //---- Configure custom challenge/forbidden responses for uniform JSON ProblemDetails ----
+            options.Events = new JwtBearerEvents
+            {
+                OnChallenge = async context =>
+                {
+                    context.HandleResponse();
+                    context.Response.StatusCode = Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized;
+                    context.Response.ContentType = "application/json";
+
+                    var problemDetails = new Microsoft.AspNetCore.Mvc.ProblemDetails
+                    {
+                        Status = Microsoft.AspNetCore.Http.StatusCodes.Status401Unauthorized,
+                        Title = "Authentication required. A valid Bearer token must be provided."
+                    };
+
+                    await context.Response.WriteAsJsonAsync(problemDetails);
+                },
+                OnForbidden = async context =>
+                {
+                    context.Response.StatusCode = Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden;
+                    context.Response.ContentType = "application/json";
+
+                    var problemDetails = new Microsoft.AspNetCore.Mvc.ProblemDetails
+                    {
+                        Status = Microsoft.AspNetCore.Http.StatusCodes.Status403Forbidden,
+                        Title = "Forbidden. You do not have permission to access this resource."
+                    };
+
+                    await context.Response.WriteAsJsonAsync(problemDetails);
+                }
             };
         });
 

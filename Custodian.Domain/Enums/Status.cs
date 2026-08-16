@@ -1,4 +1,4 @@
-﻿namespace Custodian.Domain.Enums
+namespace Custodian.Domain.Enums
 {
     public enum Status
     {
@@ -6,6 +6,8 @@
         Submitted,
         UnderReview,
         Approved,
-        Rejected
+        Rejected,
+        Paid,
+        Cancelled
     }
 }

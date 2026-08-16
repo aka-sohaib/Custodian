@@ -1,7 +1,8 @@
-﻿namespace Custodian.Domain.Enums;
+namespace Custodian.Domain.Enums;
 
 public enum InvitationType
 {
     Employee,
-    Vendor
+    Vendor,
+    Company
 }

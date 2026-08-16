@@ -1,11 +1,16 @@
+using Custodian.Application.DTOs;
 using Custodian.Application.Features.Invoices.CreateInvoiceCommand.Commands;
 using Custodian.Application.Features.Invoices.CreateInvoiceCommand.Queries;
 using Custodian.Application.Features.Invoices.ScanInvoice.Commands;
+using Custodian.Application.Features.Invoices.UpdateInvoiceStatus.Commands;
+using Custodian.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Custodian.Api.Endpoints
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class InvoiceController : ControllerBase
@@ -42,6 +47,14 @@ namespace Custodian.Api.Endpoints
             var query = new GetInvoiceByIdQuery(id);
             var result = await _mediator.Send(query);
             return Ok(result);
+        }
+
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdateInvoiceStatus([FromRoute] Guid id, [FromBody] UpdateInvoiceStatusDto dto)
+        {
+            var command = new UpdateInvoiceStatusCommand(id, dto.NewStatus, dto.RejectionReason);
+            await _mediator.Send(command);
+            return Ok(new { Message = $"Invoice status updated to {dto.NewStatus} successfully." });
         }
     }
 }

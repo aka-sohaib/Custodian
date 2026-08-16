@@ -90,6 +90,24 @@ namespace Custodian.Domain.Entities
             UpdatedAt     = DateTime.UtcNow;
         }
 
+        public void MarkAsPaid()
+        {
+            if (CurrentStatus != Status.Approved)
+                throw new InvalidOperationException($"Cannot mark invoice as paid from state: {CurrentStatus}");
+
+            CurrentStatus = Status.Paid;
+            UpdatedAt     = DateTime.UtcNow;
+        }
+
+        public void Cancel()
+        {
+            if (CurrentStatus == Status.Paid)
+                throw new InvalidOperationException("Cannot cancel an invoice that has already been paid.");
+
+            CurrentStatus = Status.Cancelled;
+            UpdatedAt     = DateTime.UtcNow;
+        }
+
         //---- Properties ----
         public string InvoiceNumber { get; init; } = null!;
         public decimal TotalAmount { get; private set; } = decimal.Zero;

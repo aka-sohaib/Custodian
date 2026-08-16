@@ -1,4 +1,4 @@
-﻿using Custodian.Application.Common.Exceptions;
+using Custodian.Application.Common.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +9,7 @@ namespace Custodian.Api.ExceptionHandlers
         public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken) 
         {
             //---- Check if Authorization Exception ----
-            if (exception is not UnauthorizedException unauthorizedException) 
+            if (exception is not UnauthorizedException && exception is not UnauthorizedAccessException) 
             {
                 return false;
             }

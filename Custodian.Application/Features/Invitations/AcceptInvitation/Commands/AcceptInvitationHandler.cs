@@ -80,6 +80,39 @@ public class AcceptInvitationHandler: IRequestHandler<AccepInvitationCommand, Gu
             connection.AcceptConnection(vendorUser.Id);
             await _connectionRepository.AddAsync(connection);
         }
+        else if (invitation.InvitationType == InvitationType.Company && invitation.InternalUserRole is InternalUserRole internalRole)
+        {
+            if (string.IsNullOrWhiteSpace(command.OrganizationName) || string.IsNullOrWhiteSpace(command.OrganizationPhone))
+            {
+                throw new ArgumentException("Organization name and phone number are required when registering a company.");
+            }
+
+            //---- 1. Create Company Organization ----
+            var orgEmail = string.IsNullOrWhiteSpace(command.OrganizationEmail) ? invitation.Email : command.OrganizationEmail;
+            var companyOrg = Organization.Create(
+                name: command.OrganizationName,
+                phone: command.OrganizationPhone,
+                email: orgEmail,
+                isCompany: true,
+                isVendor: false
+            );
+            await _organizationRepository.AddAsync(companyOrg);
+
+            //---- 2. Create Internal User (Admin) belonging to new Company Organization ----
+            var internalUser = InternalUser.CreateInternalUser(command.Name, invitation.Email, hashedPassword, internalRole, companyOrg.Id);
+            await _internalUserRepository.AddAsync(internalUser);
+            newUserId = internalUser.Id;
+
+            //---- 3. Create active B2B OrganizationConnection between Buyer & Vendor ----
+            var connection = OrganizationConnection.CreateConnection(
+                buyerOrganizationId: companyOrg.Id,
+                sellerOrganizationId: invitation.OrganizationId,
+                requestedById: invitation.InvitedById,
+                paymentTermDays: 30
+            );
+            connection.AcceptConnection(internalUser.Id);
+            await _connectionRepository.AddAsync(connection);
+        }
         else if (invitation.InvitationType == InvitationType.Employee)
         {
             if (invitation.InternalUserRole is InternalUserRole internalUserRole)

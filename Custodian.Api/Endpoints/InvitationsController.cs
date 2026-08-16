@@ -1,12 +1,15 @@
 using Custodian.Application.Features.Invitations.AcceptInvitation.Commands;
+using Custodian.Application.Features.Invitations.InviteCompany.Commands;
 using Custodian.Application.Features.Invitations.InviteInternalEmployee.Commands;
 using Custodian.Application.Features.Invitations.InviteVendor.Commands;
 using Custodian.Application.Features.Invitations.InviteVendorEmployee.Commands;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Custodian.Api.Endpoints;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class InvitationsController : ControllerBase
@@ -37,6 +40,17 @@ public class InvitationsController : ControllerBase
         });
     }
 
+    [HttpPost("company")]
+    public async Task<IActionResult> InviteCompany([FromBody] InviteCompanyCommand command, CancellationToken cancellationToken)
+    {
+        var invitationId = await _mediator.Send(command, cancellationToken);
+        return Created($"/api/invitations/{invitationId}", new
+        {
+            Message = "Company invitation sent successfully.",
+            InvitationId = invitationId
+        });
+    }
+
     [HttpPost("vendor-employee")]
     public async Task<IActionResult> InviteVendorEmployee([FromBody] InviteVendorEmployeeCommand command, CancellationToken cancellationToken)
     {
@@ -48,6 +62,7 @@ public class InvitationsController : ControllerBase
         });
     }
 
+    [AllowAnonymous]
     [HttpPost("accept")]
     public async Task<IActionResult> AcceptInvitation([FromBody] AccepInvitationCommand command, CancellationToken cancellationToken)
     {

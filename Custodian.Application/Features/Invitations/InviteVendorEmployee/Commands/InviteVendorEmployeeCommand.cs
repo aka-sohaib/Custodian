@@ -1,11 +1,9 @@
-﻿using Custodian.Domain.Enums;
+using Custodian.Domain.Enums;
 using MediatR;
 
 namespace Custodian.Application.Features.Invitations.InviteVendorEmployee.Commands;
 
 public record InviteVendorEmployeeCommand(
-        string email,
-        VendorUserRole role,
-        Guid invitedById
-    ) : IRequest<Guid>;
-
+    string email,
+    VendorUserRole role
+) : IRequest<Guid>;

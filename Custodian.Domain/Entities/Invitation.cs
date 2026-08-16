@@ -29,8 +29,8 @@ public class Invitation : BaseEntity
         AcceptedAt       = null;
     }
 
-    //---- Factory Method: For Employee Invitation ----
-    public static Invitation CreateForInternalUser(string email, string token, InternalUserRole userRole, Guid organizationId, Guid invitedById)
+    //---- Factory Method: For Internal / Company User Invitation ----
+    public static Invitation CreateForInternalUser(string email, string token, InternalUserRole userRole, Guid organizationId, Guid invitedById, InvitationType invitationType = InvitationType.Employee)
     {
         ValidateCommonFields(email, token, invitedById);
 
@@ -39,7 +39,7 @@ public class Invitation : BaseEntity
         if (!Enum.IsDefined(userRole))
             throw new ArgumentException("The internal role is not valid.", nameof(userRole));
 
-        return new Invitation(email, token, internalUserRole: userRole, vendorUserRole: null, invitationType: InvitationType.Employee,
+        return new Invitation(email, token, internalUserRole: userRole, vendorUserRole: null, invitationType: invitationType,
                               organizationId: organizationId, invitedById: invitedById);
     }
 

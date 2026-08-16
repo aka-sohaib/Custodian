@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace Custodian.Application.Features.Invitations.InviteVendorEmployee.Commands;
 
@@ -14,8 +14,5 @@ public class InviteVendorEmployeeCommandValidator: AbstractValidator<InviteVendo
         RuleFor(v => v.role)
             .NotEmpty().WithMessage("Role is required.")
             .IsInEnum().WithMessage("A valid employee role must be selected.");
-
-        RuleFor(v => v.invitedById)
-            .NotEmpty().WithMessage("InvitedBy ID is required.");
     }
 }

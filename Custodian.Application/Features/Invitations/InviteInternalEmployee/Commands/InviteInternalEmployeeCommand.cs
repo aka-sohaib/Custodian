@@ -5,6 +5,5 @@ namespace Custodian.Application.Features.Invitations.InviteInternalEmployee.Comm
 
 public record InviteInternalEmployeeCommand(
     string email,
-    InternalUserRole role,
-    Guid invitedById
+    InternalUserRole role
 ) : IRequest<Guid>;

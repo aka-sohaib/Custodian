@@ -14,24 +14,32 @@ public class InviteVendorCommandHandler : IRequestHandler<InviteVendorCommand, G
     private readonly IUserRepository _userRepository;
     private readonly IInvitationRepository _invitationRepository;
     private readonly IEmailSender _emailSender;
+    private readonly ICurrentUserService _currentUserService;
 
     public InviteVendorCommandHandler(
         IInternalUserRepository internalUserRepository,
         IUserRepository userRepository,
         IInvitationRepository invitationRepository,
-        IEmailSender emailSender)
+        IEmailSender emailSender,
+        ICurrentUserService currentUserService)
     {
         _internalUserRepository = internalUserRepository;
         _userRepository         = userRepository;
         _invitationRepository   = invitationRepository;
         _emailSender            = emailSender;
+        _currentUserService     = currentUserService;
     }
 
     public async Task<Guid> Handle(InviteVendorCommand request, CancellationToken cancellationToken)
     {
-        //--- Fetch inviter to get OrganizationId ----
-        var inviter = await _internalUserRepository.GetByIdAsync(request.invitedById)
-            ?? throw new NotFoundException($"User with ID '{request.invitedById}' was not found.");
+        //---- Extract inviter user ID from JWT context ----
+        var invitedById = _currentUserService.UserId;
+        if (invitedById == Guid.Empty)
+            throw new UnauthorizedAccessException("User is not authenticated.");
+
+        //---- Fetch inviter to get OrganizationId ----
+        var inviter = await _internalUserRepository.GetByIdAsync(invitedById)
+            ?? throw new NotFoundException($"User with ID '{invitedById}' was not found.");
 
         //---- Check if invited user already exists ----
         bool isEmailUnique = await _userRepository.IsEmailUniqueAsync(request.email);
@@ -46,11 +54,16 @@ public class InviteVendorCommandHandler : IRequestHandler<InviteVendorCommand, G
             token: token,
             userRole: VendorUserRole.Admin,
             organizationId: inviter.OrganizationId,
-            invitedById: request.invitedById
+            invitedById: invitedById
         );
 
         //---- Send email ----
-        await _emailSender.SendInvitationEmailAsync(request.email, token, cancellationToken);
+        string subject = "You have been invited to join Custodian as a Vendor";
+        string htmlBody = $@"
+            <h2>Welcome to Custodian!</h2>
+            <p>You have been invited to register your vendor organization on Custodian.</p>
+            <p>Use token <strong>{token}</strong> to accept your invitation and set up your account.</p>";
+        await _emailSender.SendEmailAsync(request.email, subject, htmlBody, cancellationToken);
 
         //---- Save entity ----
         await _invitationRepository.AddAsync(invitation, cancellationToken);
