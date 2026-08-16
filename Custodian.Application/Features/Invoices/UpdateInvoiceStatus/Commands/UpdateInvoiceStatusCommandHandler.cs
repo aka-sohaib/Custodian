@@ -1,5 +1,6 @@
 using Custodian.Application.Common.Exceptions;
 using Custodian.Application.Common.Interfaces;
+using Custodian.Domain.Entities;
 using Custodian.Domain.Enums;
 using Custodian.Domain.Interfaces;
 using MediatR;
@@ -11,17 +12,20 @@ public class UpdateInvoiceStatusCommandHandler : IRequestHandler<UpdateInvoiceSt
     private readonly IInvoiceRepository _invoiceRepository;
     private readonly IVendorUserRepository _vendorUserRepository;
     private readonly IInternalUserRepository _internalUserRepository;
+    private readonly IAuditLogRepository _auditLogRepository;
     private readonly ICurrentUserService _currentUserService;
 
     public UpdateInvoiceStatusCommandHandler(
         IInvoiceRepository invoiceRepository,
         IVendorUserRepository vendorUserRepository,
         IInternalUserRepository internalUserRepository,
+        IAuditLogRepository auditLogRepository,
         ICurrentUserService currentUserService)
     {
         _invoiceRepository      = invoiceRepository;
         _vendorUserRepository   = vendorUserRepository;
         _internalUserRepository = internalUserRepository;
+        _auditLogRepository     = auditLogRepository;
         _currentUserService     = currentUserService;
     }
 
@@ -107,6 +111,10 @@ public class UpdateInvoiceStatusCommandHandler : IRequestHandler<UpdateInvoiceSt
 
         //---- Update repository ----
         await _invoiceRepository.UpdateAsync(invoice);
+
+        //---- Record audit log entry ----
+        var auditLog = AuditLog.Create(AuditAction.StatusChanged, AuditTargetType.Invoice, invoice.Id, userId);
+        await _auditLogRepository.AddAsync(auditLog);
 
         return true;
     }

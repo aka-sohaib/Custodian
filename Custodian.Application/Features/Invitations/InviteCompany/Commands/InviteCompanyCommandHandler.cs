@@ -15,6 +15,7 @@ public class InviteCompanyCommandHandler : IRequestHandler<InviteCompanyCommand,
     private readonly IInvitationRepository _invitationRepository;
     private readonly IOrganizationConnectionRepository _connectionRepository;
     private readonly IEmailSender _emailSender;
+    private readonly IAuditLogRepository _auditLogRepository;
     private readonly ICurrentUserService _currentUserService;
 
     public InviteCompanyCommandHandler(
@@ -23,6 +24,7 @@ public class InviteCompanyCommandHandler : IRequestHandler<InviteCompanyCommand,
         IInvitationRepository invitationRepository,
         IOrganizationConnectionRepository connectionRepository,
         IEmailSender emailSender,
+        IAuditLogRepository auditLogRepository,
         ICurrentUserService currentUserService)
     {
         _vendorUserRepository   = vendorUserRepository;
@@ -30,6 +32,7 @@ public class InviteCompanyCommandHandler : IRequestHandler<InviteCompanyCommand,
         _invitationRepository   = invitationRepository;
         _connectionRepository   = connectionRepository;
         _emailSender            = emailSender;
+        _auditLogRepository     = auditLogRepository;
         _currentUserService     = currentUserService;
     }
 
@@ -70,6 +73,10 @@ public class InviteCompanyCommandHandler : IRequestHandler<InviteCompanyCommand,
                 <p><strong>{inviter.Organization?.Name ?? "A vendor organization"}</strong> has sent you a connection request on Custodian.</p>
                 <p>Log in to your account dashboard to view and manage your connections.</p>";
             await _emailSender.SendEmailAsync(request.email, connectionSubject, connectionBody, cancellationToken);
+
+            var connAuditLog = AuditLog.Create(AuditAction.Created, AuditTargetType.OrganizationConnection, connection.Id, invitedById);
+            await _auditLogRepository.AddAsync(connAuditLog);
+
             return connection.Id;
         }
 
@@ -99,6 +106,9 @@ public class InviteCompanyCommandHandler : IRequestHandler<InviteCompanyCommand,
             <p>Use token <strong>{token}</strong> to accept your invitation and set up your account.</p>";
         await _emailSender.SendEmailAsync(request.email, inviteSubject, inviteBody, cancellationToken);
         await _invitationRepository.AddAsync(invitation, cancellationToken);
+
+        var auditLog = AuditLog.Create(AuditAction.Created, AuditTargetType.Invitation, invitation.Id, invitedById);
+        await _auditLogRepository.AddAsync(auditLog);
 
         return invitation.Id;
     }

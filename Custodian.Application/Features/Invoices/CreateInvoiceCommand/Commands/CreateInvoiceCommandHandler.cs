@@ -13,6 +13,7 @@ public class CreateInvoiceCommandHandler: IRequestHandler<CreateInvoiceCommand, 
     private readonly IVendorUserRepository _vendorRepository;
     private readonly IInvoiceRepository _invoiceRepository;
     private readonly IOrganizationConnectionRepository _connectionRepository;
+    private readonly IAuditLogRepository _auditLogRepository;
     private readonly ICurrentUserService _currentUserService;
 
     public CreateInvoiceCommandHandler(
@@ -20,13 +21,15 @@ public class CreateInvoiceCommandHandler: IRequestHandler<CreateInvoiceCommand, 
         IVendorUserRepository vendorRepository,
         IInvoiceRepository invoiceRepository,
         IOrganizationConnectionRepository connectionRepository,
+        IAuditLogRepository auditLogRepository,
         ICurrentUserService currentUserService)
     {
         _internalUserRepository = internalUserRepository;
-        _vendorRepository = vendorRepository;
-        _invoiceRepository = invoiceRepository;
-        _connectionRepository = connectionRepository;
-        _currentUserService = currentUserService;
+        _vendorRepository       = vendorRepository;
+        _invoiceRepository      = invoiceRepository;
+        _connectionRepository   = connectionRepository;
+        _auditLogRepository     = auditLogRepository;
+        _currentUserService     = currentUserService;
     }
 
     public async Task<Guid> Handle(CreateInvoiceCommand command, CancellationToken cancellationToken)
@@ -72,6 +75,10 @@ public class CreateInvoiceCommandHandler: IRequestHandler<CreateInvoiceCommand, 
         }
 
         await _invoiceRepository.AddAsync(invoice);
+
+        //---- Record audit log entry ----
+        var auditLog = AuditLog.Create(AuditAction.Created, AuditTargetType.Invoice, invoice.Id, userId);
+        await _auditLogRepository.AddAsync(auditLog);
 
         return invoice.Id;
     }

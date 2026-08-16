@@ -14,6 +14,7 @@ public class InviteVendorCommandHandler : IRequestHandler<InviteVendorCommand, G
     private readonly IUserRepository _userRepository;
     private readonly IInvitationRepository _invitationRepository;
     private readonly IEmailSender _emailSender;
+    private readonly IAuditLogRepository _auditLogRepository;
     private readonly ICurrentUserService _currentUserService;
 
     public InviteVendorCommandHandler(
@@ -21,12 +22,14 @@ public class InviteVendorCommandHandler : IRequestHandler<InviteVendorCommand, G
         IUserRepository userRepository,
         IInvitationRepository invitationRepository,
         IEmailSender emailSender,
+        IAuditLogRepository auditLogRepository,
         ICurrentUserService currentUserService)
     {
         _internalUserRepository = internalUserRepository;
         _userRepository         = userRepository;
         _invitationRepository   = invitationRepository;
         _emailSender            = emailSender;
+        _auditLogRepository     = auditLogRepository;
         _currentUserService     = currentUserService;
     }
 
@@ -67,6 +70,10 @@ public class InviteVendorCommandHandler : IRequestHandler<InviteVendorCommand, G
 
         //---- Save entity ----
         await _invitationRepository.AddAsync(invitation, cancellationToken);
+
+        //---- Record audit log entry ----
+        var auditLog = AuditLog.Create(AuditAction.Created, AuditTargetType.Invitation, invitation.Id, invitedById);
+        await _auditLogRepository.AddAsync(auditLog);
 
         return invitation.Id;
     }
