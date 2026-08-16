@@ -65,12 +65,10 @@ public class CreateInvoiceCommandHandler: IRequestHandler<CreateInvoiceCommand, 
                                      command.CurrencyCode,
                                      command.DueDate);
 
-        //---- extract line itemds from dto & add to invoice ----
-        foreach(var itemDto in command.LineItems)
+        //---- Extract line items from dto & add to invoice ----
+        foreach (var itemDto in command.LineItems)
         {
-            var lineItem = LineItem.Create(invoice.Id, itemDto.Description, itemDto.Quantity, itemDto.UnitPrice);
-
-            invoice.LineItems.Add(lineItem);
+            invoice.AddLineItem(itemDto.Description, itemDto.Quantity, itemDto.UnitPrice);
         }
 
         await _invoiceRepository.AddAsync(invoice);

@@ -55,6 +55,19 @@ namespace Custodian.Domain.Entities
             UpdatedAt    = DateTime.UtcNow;
         }
 
+        //---- Line Item Management Methods ----
+        public void AddLineItem(string description, decimal quantity, decimal unitPrice)
+        {
+            var lineItem = LineItem.Create(Id, description, quantity, unitPrice);
+            LineItems.Add(lineItem);
+            TotalAmount += lineItem.TotalPrice;
+        }
+
+        public void RecalculateTotalAmount()
+        {
+            TotalAmount = LineItems.Sum(item => item.TotalPrice);
+        }
+
         //---- Status Update Methods ----
         public void Submit()
         {

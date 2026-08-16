@@ -11,6 +11,22 @@ namespace Custodian.Domain.Interfaces
         Task<IEnumerable<Invoice>> GetBySubmitterAsync(Guid userId);
         Task<IEnumerable<Invoice>> GetByStatusAsync(Status status);
         Task<IEnumerable<Invoice>> GetByDateRangeAsync(DateTime from, DateTime to);
+        Task<(IEnumerable<Invoice> Items, int TotalCount)> GetFilteredInvoicesAsync(
+            Guid userId,
+            Guid? userOrgId,
+            bool isVendor,
+            Status? status = null,
+            DateTime? fromDueDate = null,
+            DateTime? toDueDate = null,
+            decimal? minAmount = null,
+            decimal? maxAmount = null,
+            string? searchTerm = null,
+            Guid? organizationConnectionId = null,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string? sortBy = "CreatedAt",
+            bool isDescending = true,
+            CancellationToken cancellationToken = default);
         Task AddAsync(Invoice invoice);
         Task UpdateAsync(Invoice invoice);
         Task DeleteAsync(Guid id);

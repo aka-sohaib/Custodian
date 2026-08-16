@@ -1,6 +1,7 @@
 using Custodian.Application.DTOs;
 using Custodian.Application.Features.Invoices.CreateInvoiceCommand.Commands;
 using Custodian.Application.Features.Invoices.CreateInvoiceCommand.Queries;
+using Custodian.Application.Features.Invoices.GetInvoices.Queries;
 using Custodian.Application.Features.Invoices.ScanInvoice.Commands;
 using Custodian.Application.Features.Invoices.UpdateInvoiceStatus.Commands;
 using Custodian.Domain.Enums;
@@ -20,6 +21,13 @@ namespace Custodian.Api.Endpoints
         public InvoiceController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetInvoices([FromQuery] GetInvoicesQuery query)
+        {
+            var result = await _mediator.Send(query);
+            return Ok(result);
         }
 
         [HttpPost("extract")]
